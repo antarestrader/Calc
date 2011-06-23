@@ -2,6 +2,8 @@ module Main where
 import System.Environment
 import System.Console.SimpleLineEditor as SLE
 import Control.Monad
+import LLVM.Core
+import LLVM.ExecutionEngine
 import IO hiding (try)
 import Scheme
 
@@ -21,8 +23,8 @@ until_ pred prompt action = do
      
 main :: IO ()
 main = do 
-  args <- getArgs
-  repl <- buildREPL args
+  initializeNativeTarget
+  repl <- buildREPL
   SLE.initialise
   until_ (== "exit") (readPrompt "Lisp: -> ") (repl)
   SLE.restore
