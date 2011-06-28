@@ -4,11 +4,16 @@ import Control.Monad.Error
 import Value
 import Error
 import Scope
+import Compile
 
 topScope :: IO(Scope Value)
-topScope = buildScope [("+", Function (foldl (+) 0))]
+topScope = buildScope [("+", Function (\x -> return $ foldl (+) 0 x))]
 
 eval :: Scope Value -> Value -> IOThrowsError Value
+eval s (List ((Var "define"):(List ((Var name):params)):body:[])) = do
+  f <- compile params body
+  liftIO $ putValue s name $ Function f 
+  return $ Function f
 eval s (List (f:vs)) = do
   f' <- eval s f 
   apply s f' vs
@@ -23,7 +28,7 @@ apply :: Scope Value -> Value -> [Value] -> IOThrowsError Value
 apply s (Function f) vs = do
   vs' <- mapM (eval s) vs
   is  <- mapM extractInteger vs'
-  return $ Number (f is)
+  liftM Number (liftIO $ f is)
 apply _ f _ = throwError $ "Not a Function: " ++ show f
   
 extractInteger :: Value -> IOThrowsError Integer

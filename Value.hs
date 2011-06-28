@@ -4,7 +4,7 @@ module Value where
 data Value = Var String
   | Number Integer
   | List [Value]
-  | Function ([Integer] -> Integer)
+  | Function ([Integer] -> IO Integer)
   
 instance Show Value where
   showsPrec _ (Var s) = showString s
